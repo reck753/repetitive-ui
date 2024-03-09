@@ -27,19 +27,24 @@ type LoginInput = {
 
 export const useSignIn = (): MockPostApiRequest<LoginInput, LoginResponse> => {
   return {
-    trigger: () =>
-      Promise.resolve({
-        code: "success",
-        token_type: "Bearer",
-        expires_in: 3600,
-        access_token: "token",
-        refresh_token: "refresh",
-        user: {
-          id: "1",
-          email: "user@repetitive.ui",
-          full_name: "User",
-        },
-      }),
+    trigger: () => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            code: "success",
+            token_type: "Bearer",
+            expires_in: 3600,
+            access_token: "token",
+            refresh_token: "refresh",
+            user: {
+              id: "1",
+              email: "user@repetitive.ui",
+              full_name: "User",
+            },
+          });
+        }, 2000); // Resolve after 2 seconds
+      });
+    },
     isMutating: false,
     error: null,
   };
