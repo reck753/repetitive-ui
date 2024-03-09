@@ -7,7 +7,7 @@ import {
   SharedCardHeader,
   SharedCardTitle,
   SharedCardDescription,
-} from "./SharedAuth";
+} from "../shared-auth/SharedAuth";
 
 export type ResetPasswordRequested = {
   email?: string;

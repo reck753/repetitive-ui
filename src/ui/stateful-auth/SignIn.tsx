@@ -12,7 +12,7 @@ import {
   SharedCardDescription,
   SharedSubmitButton,
   SharedFooterAction,
-} from "./SharedAuth";
+} from "../shared-auth/SharedAuth";
 
 export type SignIn = {
   email?: string;

@@ -10,7 +10,7 @@ import {
   SharedCardTitle,
   SharedCardDescription,
   SharedSubmitButton,
-} from "./SharedAuth";
+} from "../shared-auth/SharedAuth";
 import { toServerDateString } from "@repetitive-ui/utils";
 
 export type SignUpBasicInfo = {

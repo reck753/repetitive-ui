@@ -9,7 +9,7 @@ import {
   SharedCardTitle,
   SharedSubmitButton,
   SharedFooterAction,
-} from "./SharedAuth";
+} from "../shared-auth/SharedAuth";
 
 export type PhoneNumber = {
   countryCode: string;

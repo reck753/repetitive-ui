@@ -6,7 +6,7 @@ import {
   SharedCardHeader,
   SharedCardTitle,
   SharedCardDescription,
-} from "./SharedAuth";
+} from "../shared-auth/SharedAuth";
 import { MailboxSvg } from "@repetitive-ui/illustrations/MailboxSvg";
 
 export const SignUpCompleted = () => {

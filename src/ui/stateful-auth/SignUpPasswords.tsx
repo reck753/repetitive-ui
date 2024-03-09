@@ -8,7 +8,7 @@ import {
   SharedCardTitle,
   SharedCardDescription,
   SharedSubmitButton,
-} from "./SharedAuth";
+} from "../shared-auth/SharedAuth";
 
 export type SignUpPasswords = {
   password?: string;

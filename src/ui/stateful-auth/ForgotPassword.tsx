@@ -8,7 +8,7 @@ import {
   SharedCardTitle,
   SharedSubmitButton,
   SharedFooterAction,
-} from "./SharedAuth";
+} from "../shared-auth/SharedAuth";
 
 export type ForgotPassword = {
   email?: string;

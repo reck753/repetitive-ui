@@ -7,7 +7,7 @@ import {
   SharedCardTitle,
   SharedCardDescription,
   SharedSubmitButton,
-} from "./SharedAuth";
+} from "../shared-auth/SharedAuth";
 import { CompletingSvg } from "@repetitive-ui/illustrations/CompletingSvg";
 
 type ResetPasswordCompletedFormProps = {
