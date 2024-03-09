@@ -1,3 +1,5 @@
+"use client";
+
 import { EyeClosedIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import { UnstyledButton } from "../button/UnstyledButton";
@@ -6,8 +8,10 @@ import { Input } from "./Input";
 import { cn } from "@repetitive-ui/utils";
 
 type PasswordInputProps = {
+  name?: string;
   value?: string;
-  onChange: (value: string) => void;
+  defaultValue?: string;
+  onChange?: (value: string) => void;
   placeholder?: string;
   autoFocus?: boolean;
   className?: string;
@@ -16,7 +20,9 @@ type PasswordInputProps = {
 };
 
 export const PasswordInput = ({
+  name,
   value,
+  defaultValue,
   onChange,
   placeholder = "Password",
   autoFocus,
@@ -29,10 +35,12 @@ export const PasswordInput = ({
   return (
     <Div className={cn("flex gap-2 relative", className)}>
       <Input
+        name={name}
         placeholder={placeholder}
         type={showPassword ? "text" : "password"}
         value={value}
-        onChange={(value) => onChange(value)}
+        defaultValue={defaultValue}
+        onChange={onChange}
         className={cn("pr-12", inputClassName)}
         autoFocus={autoFocus}
       />

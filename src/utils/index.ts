@@ -52,3 +52,11 @@ export const isValidEmail = (email: string) => {
 export const extractPhoneDigits = (phone: string) => {
   return phone.replace(/\D/g, "");
 };
+
+export const getStringFromFormData = (formData: FormData, key: string) => {
+  const value = formData.get(key);
+  if (typeof value === "string") {
+    return value;
+  }
+  return undefined;
+};

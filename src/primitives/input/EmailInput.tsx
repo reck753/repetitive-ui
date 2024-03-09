@@ -1,15 +1,19 @@
 import { Input } from "./Input";
 
 type EmailInputProps = {
-  value: string | undefined;
-  onChange: (value: string) => void;
+  name?: string | undefined;
+  value?: string | undefined;
+  defaultValue?: string | undefined;
+  onChange?: (value: string) => void;
   placeholder?: string;
   autoFocus?: boolean;
   className?: string;
 };
 
 export const EmailInput = ({
+  name,
   value,
+  defaultValue,
   onChange,
   placeholder = "Email",
   autoFocus,
@@ -17,7 +21,9 @@ export const EmailInput = ({
 }: EmailInputProps) => {
   return (
     <Input
+      name={name}
       value={value}
+      defaultValue={defaultValue}
       onChange={onChange}
       placeholder={placeholder}
       autoFocus={autoFocus}

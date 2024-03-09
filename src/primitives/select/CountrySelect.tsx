@@ -20,26 +20,42 @@ export const countries: Country[] = [
 ];
 
 type CountrySelectProps = {
-  value: string | undefined;
-  onChange: (value: Country | undefined) => void;
+  name?: string | undefined;
+  value?: string | undefined;
+  defaultValue?: string | undefined;
+  onChange?: (value: Country | undefined) => void;
 };
 
-export const CountrySelect = ({ value, onChange }: CountrySelectProps) => {
-  const country = countries.find((country) => country.name === value);
+export const CountrySelect = ({
+  name,
+  value,
+  defaultValue,
+  onChange,
+}: CountrySelectProps) => {
+  const country =
+    value !== undefined
+      ? countries.find((country) => country.name === value)
+      : undefined;
+  const defaultCountry = countries.find(
+    (country) => country.name === defaultValue
+  );
   return (
     <Select
-      value={country?.code}
-      onValueChange={(v) =>
-        onChange(countries.find((country) => country.code === v))
+      name={name}
+      value={country?.name}
+      onValueChange={
+        onChange
+          ? (v) => onChange(countries.find((country) => country.name === v))
+          : undefined
       }
-      defaultValue={value}
+      defaultValue={(country ?? defaultCountry)?.name}
     >
       <SelectTrigger>
         <SelectValue placeholder="Country" />
       </SelectTrigger>
       <SelectContent>
         {countries.map((country) => (
-          <SelectItem key={country.code} value={country.code}>
+          <SelectItem key={country.name} value={country.name}>
             <Div className="flex gap-2 items-center">
               <Span className="pt-[2px]">{country.flag}</Span>
               <Span>{country.name}</Span>

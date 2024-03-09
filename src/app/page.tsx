@@ -82,6 +82,10 @@ const uis: UiDemo[] = [
     name: "Stateful Authenticator",
     demoHref: "/stateful-auth",
   },
+  {
+    name: "Stateless Authenticator",
+    demoHref: "/stateless-auth",
+  },
 ];
 
 export default function Home() {

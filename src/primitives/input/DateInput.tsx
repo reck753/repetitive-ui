@@ -11,8 +11,8 @@ import { format } from "date-fns";
 import { Matcher } from "react-day-picker";
 
 type DateInputProps = {
-  value: Date | undefined;
-  onChange: (date: Date | undefined) => void;
+  value?: Date | undefined;
+  onChange?: (date: Date | undefined) => void;
   placeholder?: string;
   disabled?: Matcher | Matcher[];
   fromYear?: number;

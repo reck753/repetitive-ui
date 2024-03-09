@@ -1,29 +1,24 @@
 "use client";
 
-import { countries } from "@repetitive-ui/primitives/select/CountrySelect";
-import { ConfirmAccount, ConfirmAccountForm } from "./ConfirmAccount";
-import { ForgotPassword, ForgotPasswordForm } from "./ForgotPassword";
-import { ResetPassword, ResetPasswordForm } from "./ResetPassword";
-import {
-  ResetPasswordRequested,
-  ResetPasswordRequestedForm,
-} from "./ResetPasswordRequested";
-import { SignIn, SignInForm, rememberEmailStorageKey } from "./SignIn";
-import { PhoneNumber, SignUp, SignUpForm } from "./SignUp";
-import {
-  SignUpAdditionalInfo,
-  SignUpAdditionalInfoForm,
-} from "./SignUpAdditionalInfo";
-import { SignUpBasicInfo, SignUpBasicInfoForm } from "./SignUpBasicInfo";
-import { SignUpPasswords, SignUpPasswordsForm } from "./SignUpPasswords";
+import { ConfirmAccountForm } from "./ConfirmAccount";
+import { ForgotPasswordForm } from "./ForgotPassword";
+import { ResetPasswordForm } from "./ResetPassword";
+import { ResetPasswordRequestedForm } from "./ResetPasswordRequested";
+import { SignInForm, rememberEmailStorageKey } from "./SignIn";
+import { PhoneNumber, SignUpForm } from "./SignUp";
+import { SignUpAdditionalInfoForm } from "./SignUpAdditionalInfo";
+import { SignUpBasicInfoForm } from "./SignUpBasicInfo";
+import { SignUpPasswordsForm } from "./SignUpPasswords";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   extractPhoneDigits,
   getSafeErrorMessage,
+  getStringFromFormData,
   getStringParam,
   isValidEmail,
+  toServerDateString,
 } from "@repetitive-ui/utils";
-import { ReactNode, useLayoutEffect, useReducer, useState } from "react";
+import { ReactNode } from "react";
 import { useSignIn } from "@repetitive-ui/hooks/api/useSignIn";
 import { useCheckEmail } from "@repetitive-ui/hooks/api/useCheckEmail";
 import { useCheckPhone } from "@repetitive-ui/hooks/api/useCheckPhone";
@@ -43,262 +38,20 @@ import { Logo } from "../logo/Logo";
 import { Button } from "@repetitive-ui/primitives/button/Button";
 import { Link } from "@repetitive-ui/primitives/link/Link";
 
-type State =
-  | ({
-      step: "SignIn";
-    } & SignIn)
-  | ({
-      step: "SignUp";
-    } & SignUp)
-  | ({
-      step: "SignUpPasswords";
-    } & SignUpPasswords)
-  | ({
-      step: "SignUpBasicInfo";
-    } & SignUpBasicInfo)
-  | ({
-      step: "SignUpAdditionalInfo";
-    } & SignUpAdditionalInfo)
-  | {
-      step: "SignUpCompleted";
-    }
-  | ({
-      step: "ConfirmAccount";
-    } & ConfirmAccount)
-  | ({
-      step: "ForgotPassword";
-    } & ForgotPassword)
-  | ({
-      step: "ResetPasswordRequested";
-    } & ResetPasswordRequested)
-  | ({
-      step: "ResetPassword";
-    } & ResetPassword)
-  | {
-      step: "ResetPasswordCompleted";
-    };
+type Step =
+  | "SignIn"
+  | "SignUp"
+  | "SignUpPasswords"
+  | "SignUpBasicInfo"
+  | "SignUpAdditionalInfo"
+  | "SignUpCompleted"
+  | "ConfirmAccount"
+  | "ForgotPassword"
+  | "ResetPasswordRequested"
+  | "ResetPassword"
+  | "ResetPasswordCompleted";
 
-type Action =
-  | { type: "ChangeSignInEmail"; payload: { email: string } }
-  | { type: "ChangeSignInPassword"; payload: { password: string } }
-  | { type: "ChangeSignUpEmail"; payload: { email: string } }
-  | { type: "ChangeSignUpPhoneNumber"; payload: { number: string } }
-  | { type: "ChangeSignUpPhoneCountryCode"; payload: { countryCode: string } }
-  | { type: "ChangeSignUpPassword"; payload: { password: string } }
-  | {
-      type: "ChangeSignUpConfirmPassword";
-      payload: { confirmPassword: string };
-    }
-  | { type: "ChangeSignUpFirstName"; payload: { firstName: string } }
-  | { type: "ChangeSignUpLastName"; payload: { lastName: string } }
-  | { type: "ChangeSignUpGender"; payload: { gender: string } }
-  | { type: "ChangeSignUpDateOfBirth"; payload: { dateOfBirth: string } }
-  | { type: "ChangeSignUpCountry"; payload: { country: string | undefined } }
-  | { type: "ChangeSignUpCity"; payload: { city: string } }
-  | { type: "ChangeSignUpAddress"; payload: { address: string } }
-  | { type: "ChangeSignUpPostalCode"; payload: { postalCode: string } }
-  | { type: "ChangeForgotPasswordEmail"; payload: { email: string } }
-  | { type: "ChangeResetPasswordPassword"; payload: { password: string } }
-  | {
-      type: "ChangeResetPasswordConfirmPassword";
-      payload: { confirmPassword: string };
-    }
-  | { type: "ResetPasswordCompletedResetPasswordFields" }
-  | { type: "ForceStepChange"; payload: { step: State["step"] } };
-
-const defaultCountry = countries[0];
-
-const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case "ChangeSignInEmail": {
-      return {
-        step: "SignIn",
-        email: action.payload.email,
-        password: state.step === "SignIn" ? state.password : "",
-      };
-    }
-    case "ChangeSignInPassword": {
-      return {
-        step: "SignIn",
-        email: state.step === "SignIn" ? state.email : "",
-        password: action.payload.password,
-      };
-    }
-    case "ChangeSignUpEmail": {
-      return {
-        step: "SignUp",
-        email: action.payload.email,
-        phone:
-          state.step === "SignUp"
-            ? state.phone
-            : { number: "", countryCode: defaultCountry.code },
-      };
-    }
-    case "ChangeSignUpPhoneNumber": {
-      return {
-        step: "SignUp",
-        email: state.step === "SignUp" ? state.email : "",
-        phone: {
-          number: action.payload.number,
-          countryCode:
-            state.step === "SignUp" && state.phone
-              ? state.phone.countryCode
-              : defaultCountry.code,
-        },
-      };
-    }
-    case "ChangeSignUpPhoneCountryCode": {
-      return {
-        step: "SignUp",
-        email: state.step === "SignUp" ? state.email : "",
-        phone: {
-          number:
-            state.step === "SignUp" && state.phone ? state.phone.number : "",
-          countryCode: action.payload.countryCode,
-        },
-      };
-    }
-    case "ChangeSignUpPassword": {
-      return {
-        ...state,
-        step: "SignUpPasswords",
-        password: action.payload.password,
-        confirmPassword:
-          state.step === "SignUpPasswords" ? state.confirmPassword : "",
-      };
-    }
-    case "ChangeSignUpConfirmPassword": {
-      return {
-        ...state,
-        step: "SignUpPasswords",
-        password: state.step === "SignUpPasswords" ? state.password : "",
-        confirmPassword: action.payload.confirmPassword,
-      };
-    }
-    case "ChangeSignUpFirstName": {
-      return {
-        ...state,
-        step: "SignUpBasicInfo",
-        firstName: action.payload.firstName,
-        lastName: state.step === "SignUpBasicInfo" ? state.lastName : "",
-        gender: state.step === "SignUpBasicInfo" ? state.gender : undefined,
-        dateOfBirth:
-          state.step === "SignUpBasicInfo" ? state.dateOfBirth : undefined,
-      };
-    }
-    case "ChangeSignUpLastName": {
-      return {
-        ...state,
-        step: "SignUpBasicInfo",
-        firstName: state.step === "SignUpBasicInfo" ? state.firstName : "",
-        lastName: action.payload.lastName,
-        gender: state.step === "SignUpBasicInfo" ? state.gender : undefined,
-        dateOfBirth:
-          state.step === "SignUpBasicInfo" ? state.dateOfBirth : undefined,
-      };
-    }
-    case "ChangeSignUpGender": {
-      return {
-        ...state,
-        step: "SignUpBasicInfo",
-        firstName: state.step === "SignUpBasicInfo" ? state.firstName : "",
-        lastName: state.step === "SignUpBasicInfo" ? state.lastName : "",
-        gender: action.payload.gender,
-        dateOfBirth:
-          state.step === "SignUpBasicInfo" ? state.dateOfBirth : undefined,
-      };
-    }
-    case "ChangeSignUpDateOfBirth": {
-      return {
-        ...state,
-        step: "SignUpBasicInfo",
-        firstName: state.step === "SignUpBasicInfo" ? state.firstName : "",
-        lastName: state.step === "SignUpBasicInfo" ? state.lastName : "",
-        gender: state.step === "SignUpBasicInfo" ? state.gender : undefined,
-        dateOfBirth: action.payload.dateOfBirth,
-      };
-    }
-    case "ChangeSignUpCountry": {
-      return {
-        ...state,
-        step: "SignUpAdditionalInfo",
-        country: action.payload.country,
-        city: state.step === "SignUpAdditionalInfo" ? state.city : "",
-        address: state.step === "SignUpAdditionalInfo" ? state.address : "",
-        postalCode:
-          state.step === "SignUpAdditionalInfo" ? state.postalCode : "",
-      };
-    }
-    case "ChangeSignUpCity": {
-      return {
-        ...state,
-        step: "SignUpAdditionalInfo",
-        country:
-          state.step === "SignUpAdditionalInfo" ? state.country : undefined,
-        city: action.payload.city,
-        address: state.step === "SignUpAdditionalInfo" ? state.address : "",
-        postalCode:
-          state.step === "SignUpAdditionalInfo" ? state.postalCode : "",
-      };
-    }
-    case "ChangeSignUpAddress": {
-      return {
-        ...state,
-        step: "SignUpAdditionalInfo",
-        country:
-          state.step === "SignUpAdditionalInfo" ? state.country : undefined,
-        city: state.step === "SignUpAdditionalInfo" ? state.city : "",
-        address: action.payload.address,
-        postalCode:
-          state.step === "SignUpAdditionalInfo" ? state.postalCode : "",
-      };
-    }
-    case "ChangeSignUpPostalCode": {
-      return {
-        ...state,
-        step: "SignUpAdditionalInfo",
-        country:
-          state.step === "SignUpAdditionalInfo" ? state.country : undefined,
-        city: state.step === "SignUpAdditionalInfo" ? state.city : "",
-        address: state.step === "SignUpAdditionalInfo" ? state.address : "",
-        postalCode: action.payload.postalCode,
-      };
-    }
-    case "ChangeForgotPasswordEmail": {
-      return { step: "ForgotPassword", email: action.payload.email };
-    }
-    case "ChangeResetPasswordPassword": {
-      return {
-        step: "ResetPassword",
-        password: action.payload.password,
-        confirmPassword:
-          state.step === "ResetPassword" ? state.confirmPassword : "",
-        token: state.step === "ResetPassword" ? state.token : "",
-      };
-    }
-    case "ChangeResetPasswordConfirmPassword": {
-      return {
-        step: "ResetPassword",
-        password: state.step === "ResetPassword" ? state.password : "",
-        confirmPassword: action.payload.confirmPassword,
-        token: state.step === "ResetPassword" ? state.token : "",
-      };
-    }
-    case "ResetPasswordCompletedResetPasswordFields": {
-      return {
-        ...(state as any),
-        step: "ResetPasswordCompleted",
-        password: "",
-        confirmPassword: "",
-      };
-    }
-    case "ForceStepChange": {
-      return { ...(state as any), step: action.payload.step };
-    }
-  }
-};
-
-const makeStep = (step: string | null): State["step"] => {
+const makeStep = (step: string | null): Step => {
   switch (step) {
     case null:
       return "SignIn";
@@ -329,31 +82,24 @@ const makeStep = (step: string | null): State["step"] => {
   }
 };
 
-type StatefulAuthenticatorProps = {
+type StatelessAuthenticatorProps = {
   onSuccessfulSignIn: () => void;
-  initialState?: State;
 };
 
-const rememberedEmail =
-  typeof window !== "undefined"
-    ? localStorage.getItem(rememberEmailStorageKey)
-    : "";
+// const rememberedEmail =
+//   typeof window !== "undefined"
+//     ? localStorage.getItem(rememberEmailStorageKey)
+//     : "";
 
-export const StatefulAuthenticator = ({
+export const StatelessAuthenticator = ({
   onSuccessfulSignIn,
-  initialState = {
-    step: "SignIn",
-    email: rememberedEmail ?? "",
-    password: "",
-  },
-}: StatefulAuthenticatorProps) => {
+}: StatelessAuthenticatorProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const step = makeStep(searchParams.get("step"));
   const confirmAccountCode = getStringParam(searchParams, "code");
   const resetPasswordToken = getStringParam(searchParams, "token");
-  const [state, dispatch] = useReducer(reducer, initialState);
   const signIn = useSignIn();
   const checkEmail = useCheckEmail();
   const checkPhone = useCheckPhone();
@@ -362,27 +108,10 @@ export const StatefulAuthenticator = ({
   const forgotPassword = useForgotPassword();
   const resetPassword = useResetPassword();
 
-  useLayoutEffect(() => {
-    dispatch({ type: "ForceStepChange", payload: { step } });
-  }, [step]);
-
-  const updateStepParam = (value: State["step"]) => {
+  const updateStepParam = (value: Step) => {
     // now you got a read/write object
     const current = new URLSearchParams(Array.from(searchParams.entries()));
     current.set("step", value);
-
-    // cast to string
-    const search = current.toString();
-    // or const query = `${'?'.repeat(search.length && 1)}${search}`;
-    const query = search ? `?${search}` : "";
-
-    router.push(`${pathname}${query}`);
-  };
-
-  const removeStepParam = () => {
-    // now you got a read/write object
-    const current = new URLSearchParams(Array.from(searchParams.entries()));
-    current.delete("step");
 
     // cast to string
     const search = current.toString();
@@ -450,7 +179,6 @@ export const StatefulAuthenticator = ({
           success: (response) => {
             if (response.code === "success") {
               onSuccessfulSignIn();
-              removeStepParam();
               return (
                 <Span className="text-foreground">
                   {"Welcome "}
@@ -560,20 +288,6 @@ export const StatefulAuthenticator = ({
             cause: phoneResponse.message,
           });
         }
-        // Update the state with trimmed values as whitespace
-        // are not usually found in email and phone
-        dispatch({
-          type: "ChangeSignUpEmail",
-          payload: { email: trimmedEmail },
-        });
-        dispatch({
-          type: "ChangeSignUpPhoneNumber",
-          payload: { number: trimmedPhone },
-        });
-        dispatch({
-          type: "ChangeSignUpPhoneCountryCode",
-          payload: { countryCode: trimmedCountryCode },
-        });
         handleGoToSignUpPasswords();
       })
       .catch((error) => {
@@ -665,16 +379,6 @@ export const StatefulAuthenticator = ({
       return;
     }
 
-    dispatch({
-      type: "ChangeSignUpPassword",
-      payload: { password },
-    });
-
-    dispatch({
-      type: "ChangeSignUpConfirmPassword",
-      payload: { confirmPassword },
-    });
-
     handleGoToSignUpBasicInfo();
   };
 
@@ -717,26 +421,6 @@ export const StatefulAuthenticator = ({
       return;
     }
 
-    dispatch({
-      type: "ChangeSignUpFirstName",
-      payload: { firstName: trimmedFirstName },
-    });
-
-    dispatch({
-      type: "ChangeSignUpLastName",
-      payload: { lastName: trimmedLastName },
-    });
-
-    dispatch({
-      type: "ChangeSignUpGender",
-      payload: { gender: trimmedGender },
-    });
-
-    dispatch({
-      type: "ChangeSignUpDateOfBirth",
-      payload: { dateOfBirth: trimmedDateOfBirth },
-    });
-
     handleGoToSignUpAdditionalInfo();
   };
 
@@ -751,7 +435,11 @@ export const StatefulAuthenticator = ({
     const trimmedAddress = address?.trim();
     const trimmedPostalCode = postalCode?.trim();
 
-    const phone = (state as any).phone as PhoneNumber;
+    // FIXME AB sign up flow data
+    const phone: PhoneNumber = {
+      countryCode: "+1",
+      number: "1234567890",
+    };
 
     const rawPhone = phone.countryCode + extractPhoneDigits(phone.number);
 
@@ -776,7 +464,15 @@ export const StatefulAuthenticator = ({
       lastName,
       gender,
       dateOfBirth,
-    } = state as Record<string, string>;
+    } = {
+      email: "",
+      password: "",
+      confirmPassword: "",
+      firstName: "",
+      lastName: "",
+      gender: "other",
+      dateOfBirth: "1990-01-01",
+    };
 
     toast.promise(
       signUp.trigger({
@@ -990,21 +686,20 @@ export const StatefulAuthenticator = ({
     );
   };
 
-  switch (state.step) {
+  switch (step) {
     case "SignIn":
       return (
         <SignInForm
-          form={state}
-          onEmailChange={(email) =>
-            dispatch({ type: "ChangeSignInEmail", payload: { email } })
-          }
-          onPasswordChange={(password) =>
-            dispatch({ type: "ChangeSignInPassword", payload: { password } })
-          }
           signingIn={signIn.isMutating}
-          onSubmit={(_e, rememberEmail) =>
-            handleSignIn(state.email, state.password, rememberEmail)
-          }
+          onSubmit={(e) => {
+            const formData = new FormData(e.target as any);
+
+            handleSignIn(
+              getStringFromFormData(formData, "email"),
+              getStringFromFormData(formData, "password"),
+              getStringFromFormData(formData, "remember-email") === "on"
+            );
+          }}
           onForgotPasswordClick={handleGoToForgotPassword}
           onSignUpClick={handleGoToSignUp}
         />
@@ -1012,30 +707,20 @@ export const StatefulAuthenticator = ({
     case "SignUp":
       return (
         <SignUpForm
-          form={state}
-          onEmailChange={(email) =>
-            dispatch({ type: "ChangeSignUpEmail", payload: { email } })
-          }
-          onPhoneChange={(number) =>
-            dispatch({ type: "ChangeSignUpPhoneNumber", payload: { number } })
-          }
-          onCountryCodeChange={(countryCode) =>
-            dispatch({
-              type: "ChangeSignUpPhoneCountryCode",
-              payload: { countryCode },
-            })
-          }
-          onSubmit={() => {
+          onSubmit={(e) => {
+            const formData = new FormData(e.target as any);
             handleCheckEmailAndPassword(
-              state.email,
-              state.phone?.number,
-              state.phone?.countryCode
+              getStringFromFormData(formData, "email"),
+              getStringFromFormData(formData, "phone"),
+              getStringFromFormData(formData, "country-code")
             );
           }}
-          disabled={
-            (state.email?.trim() ?? "") === "" ||
-            (state.phone?.number.trim() ?? "") === ""
-          }
+          // FIXME AB How to do this disabled state?
+          disabled={false}
+          // disabled={
+          //   (state.email?.trim() ?? "") === "" ||
+          //   (state.phone?.number.trim() ?? "") === ""
+          // }
           checkingEmailOrPhone={checkEmail.isMutating || checkPhone.isMutating}
           onSignInClick={handleGoToSignIn}
         />
@@ -1043,46 +728,24 @@ export const StatefulAuthenticator = ({
     case "SignUpPasswords":
       return (
         <SignUpPasswordsForm
-          form={state}
-          onPasswordChange={(password) =>
-            dispatch({ type: "ChangeSignUpPassword", payload: { password } })
-          }
-          onConfirmPasswordChange={(confirmPassword) =>
-            dispatch({
-              type: "ChangeSignUpConfirmPassword",
-              payload: { confirmPassword },
-            })
-          }
-          onSubmit={() => {
-            handleCheckSignUpPasswords(state.password, state.confirmPassword);
+          onSubmit={(e) => {
+            const formData = new FormData(e.target as any);
+            handleCheckSignUpPasswords(
+              getStringFromFormData(formData, "password"),
+              getStringFromFormData(formData, "confirm-password")
+            );
           }}
         />
       );
     case "SignUpBasicInfo":
       return (
         <SignUpBasicInfoForm
-          form={state}
-          onFirstNameChange={(firstName) =>
-            dispatch({ type: "ChangeSignUpFirstName", payload: { firstName } })
-          }
-          onLastNameChange={(lastName) =>
-            dispatch({ type: "ChangeSignUpLastName", payload: { lastName } })
-          }
-          onGenderChange={(gender) =>
-            dispatch({ type: "ChangeSignUpGender", payload: { gender } })
-          }
-          onDateOfBirthChange={(dateOfBirth) =>
-            dispatch({
-              type: "ChangeSignUpDateOfBirth",
-              payload: { dateOfBirth },
-            })
-          }
-          onSubmit={() => {
+          onSubmit={(data) => {
             handleProceedToSignUpAdditionalInfo(
-              state.firstName,
-              state.lastName,
-              state.gender,
-              state.dateOfBirth
+              data["first-name"],
+              data["last-name"],
+              data.gender,
+              toServerDateString(data["date-of-birth"])
             );
           }}
         />
@@ -1090,28 +753,13 @@ export const StatefulAuthenticator = ({
     case "SignUpAdditionalInfo":
       return (
         <SignUpAdditionalInfoForm
-          form={state}
-          onCountryChange={(country) =>
-            dispatch({ type: "ChangeSignUpCountry", payload: { country } })
-          }
-          onCityChange={(city) =>
-            dispatch({ type: "ChangeSignUpCity", payload: { city } })
-          }
-          onAddressChange={(address) =>
-            dispatch({ type: "ChangeSignUpAddress", payload: { address } })
-          }
-          onPostalCodeChange={(postalCode) =>
-            dispatch({
-              type: "ChangeSignUpPostalCode",
-              payload: { postalCode },
-            })
-          }
-          onSubmit={() => {
+          onSubmit={(e) => {
+            const formData = new FormData(e.target as any);
             handleSubmitSignUp(
-              state.country,
-              state.city,
-              state.address,
-              state.postalCode
+              getStringFromFormData(formData, "country"),
+              getStringFromFormData(formData, "city"),
+              getStringFromFormData(formData, "address"),
+              getStringFromFormData(formData, "postal-code")
             );
           }}
         />
@@ -1121,7 +769,7 @@ export const StatefulAuthenticator = ({
     case "ConfirmAccount":
       return (
         <ConfirmAccountForm
-          form={{ token: confirmAccountCode }}
+          token={confirmAccountCode}
           verifyingEmail={verifyEmail.isMutating}
           onSubmit={({ onError, token }) => {
             handleVerifyEmail(token, onError);
@@ -1131,12 +779,9 @@ export const StatefulAuthenticator = ({
     case "ForgotPassword":
       return (
         <ForgotPasswordForm
-          form={state}
-          onEmailChange={(email) =>
-            dispatch({ type: "ChangeForgotPasswordEmail", payload: { email } })
-          }
-          onSubmit={() => {
-            handleForgotPassword(state.email);
+          onSubmit={(e) => {
+            const formData = new FormData(e.target as any);
+            handleForgotPassword(getStringFromFormData(formData, "email"));
           }}
           onSignInClick={handleGoToSignIn}
         />
@@ -1147,24 +792,13 @@ export const StatefulAuthenticator = ({
     case "ResetPassword":
       return (
         <ResetPasswordForm
-          form={{ ...state, token: resetPasswordToken }}
+          token={resetPasswordToken}
           resettingPassword={resetPassword.isMutating}
-          onPasswordChange={(password) =>
-            dispatch({
-              type: "ChangeResetPasswordPassword",
-              payload: { password },
-            })
-          }
-          onConfirmPasswordChange={(confirmPassword) =>
-            dispatch({
-              type: "ChangeResetPasswordConfirmPassword",
-              payload: { confirmPassword },
-            })
-          }
-          onSubmit={() => {
+          onSubmit={(e) => {
+            const formData = new FormData(e.target as any);
             handleResetPassword(
-              state.password,
-              state.confirmPassword,
+              getStringFromFormData(formData, "password"),
+              getStringFromFormData(formData, "confirm-password"),
               resetPasswordToken
             );
           }}
@@ -1174,7 +808,6 @@ export const StatefulAuthenticator = ({
       return (
         <ResetPasswordCompletedForm
           onSubmit={() => {
-            dispatch({ type: "ResetPasswordCompletedResetPasswordFields" });
             router.push(pathname);
           }}
         />
@@ -1190,8 +823,11 @@ const AuthenticatorContainer = ({ children }: AuthenticatorContainerProps) => {
   return (
     <Div className="flex flex-1 min-h-dvh justify-center py-12">
       <Div className="flex flex-col flex-1 max-w-md gap-6">
-        <Link href={"/"}>
+        <Link href={"/"} className="flex flex-col relative">
           <Logo />
+          <Span className="text-sm font-bold text-destructive text-center absolute -bottom-5 left-0 right-0">
+            Work in Progress
+          </Span>
         </Link>
         {children}
       </Div>
@@ -1199,29 +835,37 @@ const AuthenticatorContainer = ({ children }: AuthenticatorContainerProps) => {
   );
 };
 
-type StatefulAuthenticatorPageProps = {
+type StatelessAuthenticatorPageProps = {
   children: ReactNode;
-  initialState?: State;
 };
 
-type AuthStatus = "loading" | "authenticated" | "unauthenticated";
-
-export const StatefulAuthenticatorPage = ({
-  initialState,
+export const StatelessAuthenticatorPage = ({
   children,
-}: StatefulAuthenticatorPageProps) => {
-  const [status, setStatus] = useState<AuthStatus>("unauthenticated");
-
-  if (status === "loading") {
-    return null;
-  }
+}: StatelessAuthenticatorPageProps) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const status = searchParams.get("auth-status") ?? "unauthenticated";
 
   if (status === "authenticated") {
     return (
       <Div className="flex flex-col gap-10 py-12">
         {children}
         <Button
-          onClick={() => setStatus("unauthenticated")}
+          onClick={() => {
+            // now you got a read/write object
+            const current = new URLSearchParams(
+              Array.from(searchParams.entries())
+            );
+            current.delete("auth-status");
+
+            // cast to string
+            const search = current.toString();
+            // or const query = `${'?'.repeat(search.length && 1)}${search}`;
+            const query = search ? `?${search}` : "";
+
+            router.replace(`${pathname}${query}`);
+          }}
           className="self-center"
         >
           Sign Out
@@ -1232,9 +876,21 @@ export const StatefulAuthenticatorPage = ({
 
   return (
     <AuthenticatorContainer>
-      <StatefulAuthenticator
-        initialState={initialState}
-        onSuccessfulSignIn={() => setStatus("authenticated")}
+      <StatelessAuthenticator
+        onSuccessfulSignIn={() => {
+          // now you got a read/write object
+          const current = new URLSearchParams(
+            Array.from(searchParams.entries())
+          );
+          current.set("auth-status", "authenticated");
+
+          // cast to string
+          const search = current.toString();
+          // or const query = `${'?'.repeat(search.length && 1)}${search}`;
+          const query = search ? `?${search}` : "";
+
+          router.push(`${pathname}${query}`);
+        }}
       />
     </AuthenticatorContainer>
   );

@@ -7,13 +7,25 @@ import {
 } from "../select/Select";
 
 type GenderSelectProps = {
-  value: string | undefined;
-  onChange: (value: string) => void;
+  name?: string | undefined;
+  value?: string | undefined;
+  defaultValue?: string | undefined;
+  onChange?: (value: string) => void;
 };
 
-export const GenderSelect = ({ value, onChange }: GenderSelectProps) => {
+export const GenderSelect = ({
+  name,
+  value,
+  defaultValue,
+  onChange,
+}: GenderSelectProps) => {
   return (
-    <Select value={value} onValueChange={onChange} defaultValue={value}>
+    <Select
+      name={name}
+      value={value}
+      onValueChange={onChange}
+      defaultValue={defaultValue}
+    >
       <SelectTrigger>
         <SelectValue placeholder="Gender" />
       </SelectTrigger>
