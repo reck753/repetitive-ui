@@ -1,4 +1,4 @@
-import { MockApiRequest } from "./api-mock";
+import { MockPostApiRequest } from "./api-mock";
 
 type ForgotPasswordResponse =
   | {
@@ -13,13 +13,13 @@ type ForgotPasswordInput = {
   username: string;
 };
 
-export const useForgotPassword = (): MockApiRequest<
+export const useForgotPassword = (): MockPostApiRequest<
   ForgotPasswordInput,
   ForgotPasswordResponse
 > => {
   return {
     trigger: () => Promise.resolve({ code: "success" }),
-    loading: false,
+    isMutating: false,
     error: null,
   };
 };

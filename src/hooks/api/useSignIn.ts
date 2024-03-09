@@ -1,4 +1,4 @@
-import { MockApiRequest } from "./api-mock";
+import { MockPostApiRequest } from "./api-mock";
 
 type User = {
   id: string;
@@ -25,7 +25,7 @@ type LoginInput = {
   password: string;
 };
 
-export const useSignIn = (): MockApiRequest<LoginInput, LoginResponse> => {
+export const useSignIn = (): MockPostApiRequest<LoginInput, LoginResponse> => {
   return {
     trigger: () =>
       Promise.resolve({
@@ -40,7 +40,7 @@ export const useSignIn = (): MockApiRequest<LoginInput, LoginResponse> => {
           full_name: "User",
         },
       }),
-    loading: false,
+    isMutating: false,
     error: null,
   };
 };

@@ -1,5 +1,6 @@
-export type MockApiRequest<Input, Response> = {
+// swr-like api mock
+export type MockPostApiRequest<Input, Response> = {
   trigger: (input: Input) => Promise<Response>;
-  loading: boolean;
+  isMutating: boolean;
   error: Error | null;
 };

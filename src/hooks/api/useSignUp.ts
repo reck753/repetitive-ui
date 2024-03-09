@@ -1,4 +1,4 @@
-import { MockApiRequest } from "./api-mock";
+import { MockPostApiRequest } from "./api-mock";
 
 type RegisterResponse =
   | {
@@ -25,13 +25,13 @@ type RegisterInput = {
   postal_code: string | undefined;
 };
 
-export const useSignUp = (): MockApiRequest<
+export const useSignUp = (): MockPostApiRequest<
   RegisterInput,
   RegisterResponse
 > => {
   return {
     trigger: () => Promise.resolve({ code: "success" }),
-    loading: false,
+    isMutating: false,
     error: null,
   };
 };

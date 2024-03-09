@@ -1,4 +1,4 @@
-import { MockApiRequest } from "./api-mock";
+import { MockPostApiRequest } from "./api-mock";
 
 type CheckPhoneInput = {
   phone: string;
@@ -9,13 +9,13 @@ type CheckPhoneResponse = {
   message: string;
 };
 
-export const useCheckPhone = (): MockApiRequest<
+export const useCheckPhone = (): MockPostApiRequest<
   CheckPhoneInput,
   CheckPhoneResponse
 > => {
   return {
     trigger: () => Promise.resolve({ code: "valid", message: "valid" }),
-    loading: false,
+    isMutating: false,
     error: null,
   };
 };

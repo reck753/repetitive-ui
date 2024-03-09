@@ -1,4 +1,4 @@
-import { MockApiRequest } from "./api-mock";
+import { MockPostApiRequest } from "./api-mock";
 
 type ResetPasswordResponse =
   | {
@@ -15,13 +15,13 @@ type ResetPasswordInput = {
   token: string;
 };
 
-export const useResetPassword = (): MockApiRequest<
+export const useResetPassword = (): MockPostApiRequest<
   ResetPasswordInput,
   ResetPasswordResponse
 > => {
   return {
     trigger: () => Promise.resolve({ code: "success" }),
-    loading: false,
+    isMutating: false,
     error: null,
   };
 };

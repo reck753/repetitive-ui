@@ -1,4 +1,4 @@
-import { MockApiRequest } from "./api-mock";
+import { MockPostApiRequest } from "./api-mock";
 
 type VerifyEmailResponse =
   | {
@@ -13,13 +13,13 @@ type VerifyEmailInput = {
   code: string;
 };
 
-export const useVerifyEmail = (): MockApiRequest<
+export const useVerifyEmail = (): MockPostApiRequest<
   VerifyEmailInput,
   VerifyEmailResponse
 > => {
   return {
     trigger: () => Promise.resolve({ code: "success" }),
-    loading: false,
+    isMutating: false,
     error: null,
   };
 };

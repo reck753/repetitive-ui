@@ -1000,7 +1000,7 @@ export const StatefulAuthenticator = ({
           onPasswordChange={(password) =>
             dispatch({ type: "ChangeSignInPassword", payload: { password } })
           }
-          signingIn={signIn.loading}
+          signingIn={signIn.isMutating}
           onSubmit={(_e, rememberEmail) =>
             handleSignIn(state.email, state.password, rememberEmail)
           }
@@ -1035,7 +1035,7 @@ export const StatefulAuthenticator = ({
             (state.email?.trim() ?? "") === "" ||
             (state.phone?.number.trim() ?? "") === ""
           }
-          checkingEmailOrPhone={checkEmail.loading || checkPhone.loading}
+          checkingEmailOrPhone={checkEmail.isMutating || checkPhone.isMutating}
           onSignInClick={handleGoToSignIn}
         />
       );
@@ -1121,7 +1121,7 @@ export const StatefulAuthenticator = ({
       return (
         <ConfirmAccountForm
           form={{ token: confirmAccountCode }}
-          verifyingEmail={verifyEmail.loading}
+          verifyingEmail={verifyEmail.isMutating}
           onSubmit={({ onError, token }) => {
             handleVerifyEmail(token, onError);
           }}
@@ -1147,7 +1147,7 @@ export const StatefulAuthenticator = ({
       return (
         <ResetPasswordForm
           form={{ ...state, token: resetPasswordToken }}
-          resettingPassword={resetPassword.loading}
+          resettingPassword={resetPassword.isMutating}
           onPasswordChange={(password) =>
             dispatch({
               type: "ChangeResetPasswordPassword",
@@ -1215,7 +1215,7 @@ export const StatefulAuthenticatorPage = ({
 
   if (status === "authenticated") {
     return (
-      <Div className="flex flex-col gap-10">
+      <Div className="flex flex-col gap-10 py-12">
         {children}
         <Button
           onClick={() => setStatus("unauthenticated")}
